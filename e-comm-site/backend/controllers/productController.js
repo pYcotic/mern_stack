@@ -1,22 +1,28 @@
 const Product = require('../models/productModel');
 const mongoose = require('mongoose');
+const path = require('path');
+
+require('dotenv').config();
 
 // create new product
+
+
 const addProduct = async (req, res) => {
-    // take the request body posted and assign them to these keys
-    const { image, price, size, availability } = req.body;
-    // create a new item in database using the assigned keys
-    // if all is in order respond with what we created
     try {
+        const { price, size, availability } = req.body;
+        const imagePath = req.files['image'][0].path;
+        const imageFilename = path.basename(imagePath);
+        const imageUrl = `${req.protocol}://${req.get('host')}/images/${imageFilename}`;
         const product = await Product.create({
-            image,
+            image: imageUrl,
             price,
             size,
             availability,
         });
-        res.status(200).json(product);
+
+        res.status(200).json({product});
     } catch (error) {
-        res.status(400).json({ error: error.message }); // will respond with error message in the event that something went wrong
+        res.status(400).json({ error: error.message });
     }
 };
 
@@ -71,6 +77,7 @@ const updateProduct = async (req, res) => {
                 error: `Product with id:${id}, does not exist and/or was not updated`,
             });
     }
+
     res.status(200).json(product);
 };
 // delete product
@@ -96,7 +103,7 @@ const deleteProduct = async (req, res) => {
 };
 
 module.exports = {
-    addProduct,
+    addProduct, // use an array to apply multiple middlewares to a single route handler
     getAllProducts,
     getOneProduct,
     deleteProduct,
